@@ -1,0 +1,6 @@
+[submodule "fileview-frontend"]
+	path = fileview-frontend
+	url = https://github.com/basemetas/fileview-frontend.git
+[submodule "fileview-backend"]
+	path = fileview-backend
+	url = https://github.com/basemetas/fileview-backend.git
