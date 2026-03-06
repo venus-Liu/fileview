@@ -115,3 +115,10 @@ npm run dev
 
 您可以使用 [Discussions](https://github.com/basemetas/fileview/discussions) 功能发起交流
 
+<!-- AGGREGATED_CONTRIBUTORS_START -->
+## 所有贡献者
+
+| 头像 | 用户 | 贡献次数 |
+| :---: | :--- | :---: |
+
+<!-- AGGREGATED_CONTRIBUTORS_END -->

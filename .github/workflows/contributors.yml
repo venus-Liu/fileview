@@ -1,0 +1,124 @@
+name: Aggregate Contributors
+on:
+  schedule:
+    - cron: "0 0 * * 0" # 每周运行
+  workflow_dispatch:
+
+jobs:
+  aggregate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Create aggregation script
+        run: |
+          cat > aggregate-contributors.js << 'EOF'
+          const { Octokit } = require('@octokit/rest');
+          const fs = require('fs');
+
+          const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
+
+          // 配置：主仓库和子模块
+          const REPOS = [
+            { owner: 'basemetas', repo: 'fileview' },
+            { owner: 'basemetas', repo: 'fileview-backend' },
+            { owner: 'basemetas', repo: 'fileview-frontend' }
+          ];
+
+          async function getAllContributors() {
+            const contributorsMap = new Map();
+            
+            for (const { owner, repo } of REPOS) {
+              console.log(`Fetching ${owner}/${repo}...`);
+              
+              let page = 1;
+              while (true) {
+                const { data } = await octokit.repos.listContributors({
+                  owner,
+                  repo,
+                  per_page: 100,
+                  page
+                });
+                
+                if (data.length === 0) break;
+                
+                data.forEach(contributor => {
+                  if (contributor.type === 'User') {
+                    const existing = contributorsMap.get(contributor.login);
+                    if (existing) {
+                      existing.contributions += contributor.contributions;
+                    } else {
+                      contributorsMap.set(contributor.login, {
+                        login: contributor.login,
+                        avatar_url: contributor.avatar_url,
+                        html_url: contributor.html_url,
+                        contributions: contributor.contributions
+                      });
+                    }
+                  }
+                });
+                
+                page++;
+                if (data.length < 100) break;
+              }
+            }
+            
+            // 按贡献次数排序
+            return Array.from(contributorsMap.values())
+              .sort((a, b) => b.contributions - a.contributions);
+          }
+
+          async function updateReadme() {
+            const contributors = await getAllContributors();
+            
+            let table = '## 所有贡献者\n\n';
+            table += '| 头像 | 用户 | 贡献次数 |\n';
+            table += '| :---: | :--- | :---: |\n';
+            
+            contributors.forEach(c => {
+              table += `| <img src="${c.avatar_url}" width="50" height="50"> | [${c.login}](${c.html_url}) | ${c.contributions} |\n`;
+            });
+            
+            let readme = fs.readFileSync('README.md', 'utf8');
+            const startMarker = '<!-- AGGREGATED_CONTRIBUTORS_START -->';
+            const endMarker = '<!-- AGGREGATED_CONTRIBUTORS_END -->';
+            
+            const pattern = new RegExp(`${startMarker}[\\s\\S]*?${endMarker}`, 'g');
+            const replacement = `${startMarker}\n${table}\n${endMarker}`;
+            
+            if (pattern.test(readme)) {
+              readme = readme.replace(pattern, replacement);
+            } else {
+              readme += `\n\n${startMarker}\n${table}\n${endMarker}`;
+            }
+            
+            fs.writeFileSync('README.md', readme);
+          }
+
+          updateReadme().catch(console.error);
+          EOF
+
+      - name: Install Octokit
+        run: npm install @octokit/rest
+
+      - name: Run aggregation script
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node aggregate-contributors.js
+
+      - name: Commit changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add README.md
+          git diff --quiet && git diff --staged --quiet || git commit -m "docs: update aggregated contributors"
+          git push
