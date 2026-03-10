@@ -33,7 +33,8 @@
 
 ## 开源地址
 
-- https://github.com/basemetas/fileview
+- [Github] https://github.com/basemetas/fileview
+- [Gitee] https://gitee.com/basemetas/fileview
 
 ## 启动容器
 
@@ -103,7 +104,7 @@ npm run dev
 - 业务集成场景适配优化
 #### 📚 社区推广
 - 使用教程、案例、最佳实践等文章
-- 各大开源软件周刊等推荐
+- 各大开源软件周刊/自媒体/公众号等推荐
 - 您自己的一个 star ⭐️
 
 ## 用户交流
