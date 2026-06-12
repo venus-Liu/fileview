@@ -111,6 +111,12 @@ npm run dev
 
 您可以使用 [Discussions](https://github.com/basemetas/fileview/discussions) 功能发起交流
 
+## 社区资源
+
+- [DzzOffice 文件预览插件](https://www.dzzoffice.com/index.php?mod=dzzmarket&op=view&mid=80) by [my1127angel](https://github.com/my1127angel)
+- [可道云文件预览插件](https://gitee.com/xh2002/kod-plugins/tree/xiaohu/kodbox-plugins/bmFileView) by [xh2002](https://gitee.com/xh2002)
+
+
 <!-- AGGREGATED_CONTRIBUTORS_START -->
 ## 所有贡献者
 
